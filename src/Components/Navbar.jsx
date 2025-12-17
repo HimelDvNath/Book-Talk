@@ -1,10 +1,23 @@
-import React from "react";
-import {Link} from "react-router"
+import React, { useContext } from "react";
+import { Link } from "react-router";
+import { AuthContext } from "../Provider/AuthProvider";
 const Navbar = () => {
+    const { user, logOut } = useContext(AuthContext);
+    const handdleSignOut = async()=>{
+        try {
+            await logOut();
+        } catch (error) {
+            console.log(error.message);
+        }
+    }
     return (
         <div className='navbar bg-base-100 shadow-sm'>
             <div className='flex-1'>
-                <Link to='/' className=' text-4xl text-black font-extrabold text-shadow-lg cursor-pointer'>Book<span className="text-orange-400">Talk</span></Link>
+                <Link
+                    to='/'
+                    className=' text-4xl text-black font-extrabold text-shadow-lg cursor-pointer'>
+                    Book<span className='text-orange-400'>Talk</span>
+                </Link>
             </div>
             <div className='flex-none space-x-3 px-3'>
                 <div className='dropdown dropdown-end '>
@@ -50,10 +63,11 @@ const Navbar = () => {
                             </a>
                         </li>
                         <li>
-                            <a>Settings</a>
-                        </li>
-                        <li>
-                            <a>Logout</a>
+                            {user ? (
+                                <button onClick={handdleSignOut}>LogOut</button>
+                            ) : (
+                                <Link to='/signin'>LogIn</Link>
+                            )}
                         </li>
                     </ul>
                 </div>

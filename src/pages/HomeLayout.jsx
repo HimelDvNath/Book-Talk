@@ -1,11 +1,14 @@
 import React from 'react';
 import Navbar from '../Components/Navbar';
+import { Outlet } from 'react-router';
+import Books from '../Components/Books';
 
 const HomeLayout = () => {
     return (
         <div>
             <Navbar/>
-            <h1>it's homelayout</h1>
+            <Outlet/>
+            
         </div>
     );
 };
