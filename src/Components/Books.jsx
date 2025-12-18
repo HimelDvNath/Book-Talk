@@ -20,7 +20,7 @@ const Books = () => {
                 <TabPanel>
                     <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5'>
                         {bookData.map((book) => (
-                            <BookCard book={book} />
+                            <BookCard key={book.book_id} book={book} />
                         ))}
                     </div>
                 </TabPanel>
