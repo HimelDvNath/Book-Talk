@@ -10,7 +10,7 @@ const DetailsBook = () => {
         const fetchBook = async () => {
             try {
                 const response = await fetch(
-                    `http://localhost:5000/books/${id}`
+                    `${import.meta.env.VITE_BACKEND_ROOT}/books/${id}`
                 );
                 const data = await response.json();
                 setBook(data.data[0]);
@@ -107,7 +107,7 @@ const DetailsBook = () => {
                 {/* Discussion Section */}
                 <div className='mt-8'>
                     <h2 className='text-2xl font-bold mb-4'>Discussion</h2>
-                    {<Comments bookId={id}/>}
+                    {<Comments bookId={id} />}
                 </div>
             </div>
         </div>

@@ -6,7 +6,7 @@ import { updateProfile } from "firebase/auth";
 const SignUp = () => {
     const [seePassword, setSeePassword] = useState(false);
     const navigate = useNavigate();
-    const {createUser} = useContext(AuthContext);
+    const { createUser } = useContext(AuthContext);
     const handleFrom = async (e) => {
         e.preventDefault();
         const form = new FormData(e.target);
@@ -14,7 +14,10 @@ const SignUp = () => {
 
         // data send to the server
         try {
-            const userCredential = await createUser(formData.email, formData.password);
+            const userCredential = await createUser(
+                formData.email,
+                formData.password
+            );
             const user = userCredential.user;
             const name = formData.firstName + " " + formData.lastName;
             // update profile
@@ -22,21 +25,23 @@ const SignUp = () => {
                 displayName: name || "",
             });
 
-            await fetch("http://localhost:5000/users/signup", {
+            await fetch(`${import.meta.env.VITE_BACKEND_ROOT}/users/signup`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify(formData),
-            }).then(res=>res.json()).then(data=>{
-                if(data.success){
-                    alert('Registration Successfully')
-                    e.reset;
-                    navigate('/');
-                }else{
-                    alert('Something went wrong!! Try again')
-                }
-            });
+            })
+                .then((res) => res.json())
+                .then((data) => {
+                    if (data.success) {
+                        alert("Registration Successfully");
+                        e.reset;
+                        navigate("/");
+                    } else {
+                        alert("Something went wrong!! Try again");
+                    }
+                });
         } catch (error) {
             console.log(error.message);
         }
