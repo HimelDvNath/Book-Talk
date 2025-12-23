@@ -7,3 +7,30 @@
     -ms-overflow-style: none; /* IE & Edge */
     scrollbar-width: none; /* Firefox */
 }
+/* Add to index.css */
+.comments-container {
+    overflow-x: auto;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e0 #f7fafc;
+}
+
+.comments-container::-webkit-scrollbar {
+    height: 6px;
+}
+
+.comments-container::-webkit-scrollbar-track {
+    background: #f7fafc;
+    border-radius: 3px;
+}
+
+.comments-container::-webkit-scrollbar-thumb {
+    background-color: #cbd5e0;
+    border-radius: 3px;
+}
+
+/* Prevent textarea from shrinking */
+.min-w-max {
+    min-width: max-content;
+}

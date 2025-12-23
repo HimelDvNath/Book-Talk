@@ -36,6 +36,7 @@ const Navbar = () => {
                             id: n.id,
                             senderName: n.sendername,
                             notification: n.comment,
+                            location: n.location,
                             isRead: n.isread,
                         }))
                         .reverse();
@@ -207,7 +208,7 @@ const Navbar = () => {
                         tabIndex={0}
                         className='menu menu-sm dropdown-content bg-base-100 rounded-box mt-3 w-52 p-2 shadow z-[100]'>
                         <li>
-                            <a>{user ? user?.displayName : "Profile"}</a>
+                            <a>{user ? user?.displayName || user?.user?.displayName : "Profile"}</a>
                         </li>
                         <li>
                             {user ? (

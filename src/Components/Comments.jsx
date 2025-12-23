@@ -16,7 +16,8 @@ const Comments = ({ bookId }) => {
     const location = useLocation();
     const navigate = useNavigate();
 
-    const userName = user?.displayName || "Anonymous";
+    const userName =
+        user?.displayName || user?.user?.displayName || "Anonymous";
 
     /* ================= FETCH COMMENTS (RECURSIVE) ================= */
     const fetchReplies = async (parentId = 0) => {
@@ -35,7 +36,7 @@ const Comments = ({ bookId }) => {
                         text: item.comment,
                         user:
                             `${item.firstname} ${item.lastname}` || "Anonymous",
-                        user_email: item.user_email, // ✅ IMPORTANT
+                        user_email: item.user_email,
                         replies: childReplies,
                     };
                 })
@@ -73,28 +74,27 @@ const Comments = ({ bookId }) => {
             user_email: user?.email,
             parent_comment_id: parentId,
             comment: text,
-            receiver_email: receiverEmail, // ✅ reply receiver
+            receiver_email: receiverEmail,
         };
         try {
-            // ===== Save to DB (optional) =====
             await fetch(`${import.meta.env.VITE_BACKEND_ROOT}/replies`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(reply),
             });
             socket.emit("newComment", { bookId });
-            // ===== SOCKET NOTIFICATION =====
+
             if (user?.uid && receiverEmail && receiverEmail !== user?.email) {
                 socket.emit(
                     "sendNotification",
                     receiverEmail,
                     text,
-                    user?.displayName,
+                    user?.displayName || user?.user?.displayName,
                     location.pathname
                 );
                 const newNotification = {
                     user_email: receiverEmail,
-                    senderName: user?.displayName,
+                    senderName: user?.displayName || user?.user?.displayName,
                     comment: text,
                     location: location.pathname,
                 };
@@ -108,19 +108,16 @@ const Comments = ({ bookId }) => {
                 );
             }
 
-            // Clear textarea
             setReplyTexts((prev) => ({
                 ...prev,
                 [parentId]: "",
             }));
 
-            // Close reply box
             setShowReply((prev) => ({
                 ...prev,
                 [parentId]: false,
             }));
 
-            // Refresh comments
             handleDiscussionList();
         } catch (error) {
             console.error("Failed to post comment:", error);
@@ -132,12 +129,29 @@ const Comments = ({ bookId }) => {
         return comments.map((item) => (
             <div
                 key={item.id}
-                className='bg-gray-200 px-4 py-3 rounded-lg mb-2'
+                className={`bg-gray-200 rounded-lg mb-2 ${
+                    level > 0
+                        ? "border-l-2 border-gray-400 pl-2 sm:pl-3"
+                        : "px-3 sm:px-4"
+                } py-2 sm:py-3`}
                 style={{
-                    marginLeft: level > 0 ? `${level * 24}px` : "0",
+                    marginLeft:
+                        level > 0 ? `${Math.min(level, 5) * 0.5}rem` : "0",
+                    maxWidth: "100%",
                 }}>
-                <p className='font-semibold'>{item.user}</p>
-                <p className='mb-2'>{item.text}</p>
+                <div className='flex items-start gap-2 mb-1'>
+                    <div className='min-w-0 flex-1'>
+                        {" "}
+                        {/* Added this wrapper for better text handling */}
+                        <p className='font-semibold text-sm sm:text-base break-words truncate'>
+                            {item.user}
+                        </p>
+                        <p className='text-sm sm:text-base break-words whitespace-normal'>
+                            {item.text}
+                        </p>
+                    </div>
+                </div>
+
                 <button
                     onClick={() =>
                         setShowReply((prev) => ({
@@ -145,23 +159,19 @@ const Comments = ({ bookId }) => {
                             [item.id]: !prev[item.id],
                         }))
                     }
-                    className='text-blue-500 text-sm mb-2 hover:underline'>
+                    className='text-blue-500 text-xs sm:text-sm mb-1 hover:underline'>
                     Reply
                 </button>
 
                 {showReply[item.id] && (
                     <form
                         onSubmit={(e) =>
-                            handleComment(
-                                e,
-                                item.id,
-                                item.user_email // ✅ receiver email
-                            )
+                            handleComment(e, item.id, item.user_email)
                         }
-                        className='mb-6 px-5'>
-                        <div className='relative'>
+                        className='mb-4 mt-2'>
+                        <div className='relative w-full'>
                             <textarea
-                                className='h-20 textarea bg-gray-300 rounded-xl w-5/7 px-3 py-2 resize-none outline-none'
+                                className='h-16 sm:h-20 bg-gray-300 rounded-xl w-full px-3 py-2 pr-10 resize-none outline-none text-sm sm:text-base break-words'
                                 placeholder={`Reply as ${userName}`}
                                 value={replyTexts[item.id] || ""}
                                 onChange={(e) =>
@@ -176,11 +186,16 @@ const Comments = ({ bookId }) => {
                                         e.target.form.requestSubmit();
                                     }
                                 }}
+                                rows={3}
                             />
                             <button
                                 type='submit'
-                                className='absolute top-11 right-61 mt-3'>
-                                <IoMdSend color='blue' size={25} />
+                                className='absolute bottom-2 right-2 sm:bottom-3 sm:right-3'>
+                                <IoMdSend
+                                    color='blue'
+                                    size={18}
+                                    className='sm:w-5 sm:h-5'
+                                />
                             </button>
                         </div>
                     </form>
@@ -194,10 +209,11 @@ const Comments = ({ bookId }) => {
             </div>
         ));
     };
+
     useEffect(() => {
         const handleNewComment = ({ bookId: incomingBookId }) => {
             if (incomingBookId === bookId) {
-                handleDiscussionList(); // 🔥 REFRESH COMMENTS
+                handleDiscussionList();
             }
         };
 
@@ -214,34 +230,45 @@ const Comments = ({ bookId }) => {
     }, [bookId]);
 
     return (
-        <div className='space-y-4 max-h-[600px] overflow-auto px-3 sm:px-5'>
+        <div className='space-y-4 max-h-[600px] overflow-y-auto px-2 sm:px-3 md:px-5'>
             {discussion.length === 0 ? (
-                <p className='text-gray-500'>No discussions yet.</p>
+                <p className='text-gray-500 text-sm sm:text-base'>
+                    No discussions yet.
+                </p>
             ) : (
-                renderComments(discussion)
+                <div className='space-y-2'>{renderComments(discussion)}</div>
             )}
 
             {/* NEW COMMENT */}
             <form
                 onSubmit={(e) => handleComment(e)}
-                className='mt-4 w-full sm:w-5/6 md:w-4/5 relative'>
-                <textarea
-                    className='h-20 textarea bg-gray-300 rounded-xl w-full px-3 py-2 resize-none outline-none'
-                    placeholder={`Comment as ${userName}`}
-                    value={replyTexts[0] || ""}
-                    onChange={(e) =>
-                        setReplyTexts((p) => ({ ...p, 0: e.target.value }))
-                    }
-                    onKeyDown={(e) => {
-                        if (e.key === "Enter" && !e.shiftKey) {
-                            e.preventDefault();
-                            e.target.form.requestSubmit();
+                className='mt-4 w-full relative'>
+                <div className='relative'>
+                    <textarea
+                        className='h-20 bg-gray-300 rounded-xl w-full px-3 py-2 pr-10 resize-none outline-none text-sm sm:text-base break-words'
+                        placeholder={`Comment as ${userName}`}
+                        value={replyTexts[0] || ""}
+                        onChange={(e) =>
+                            setReplyTexts((p) => ({ ...p, 0: e.target.value }))
                         }
-                    }}
-                />
-                <button type='submit' className='absolute bottom-3 right-3'>
-                    <IoMdSend color='blue' size={22} />
-                </button>
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter" && !e.shiftKey) {
+                                e.preventDefault();
+                                e.target.form.requestSubmit();
+                            }
+                        }}
+                        rows={4}
+                    />
+                    <button
+                        type='submit'
+                        className='absolute bottom-2 right-2 sm:bottom-3 sm:right-3'>
+                        <IoMdSend
+                            color='blue'
+                            size={20}
+                            className='sm:w-6 sm:h-6'
+                        />
+                    </button>
+                </div>
             </form>
         </div>
     );

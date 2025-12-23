@@ -13,11 +13,11 @@ const Books = () => {
             .then((res) => res.json())
             .then((data) => {
                 setBookData(data.data);
-                setLoader(false); // move it here
+                setLoader(false); 
             })
             .catch((err) => {
                 console.error("Failed to fetch books:", err);
-                setLoader(false); // make sure loader stops even if error
+                setLoader(false); 
             });
     }, []);
 
