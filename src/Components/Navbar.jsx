@@ -10,12 +10,14 @@ const Navbar = () => {
     const [showNotifications, setShowNotifications] = useState(false);
     const [unreadCount, setUnreadCount] = useState(0);
 
+    // const email = user?.email;
+
     // REGISTER USER
     useEffect(() => {
         if (user?.email) {
             socket.emit("register", user.email);
         }
-    }, [user?.email]);
+    }, [user]);
 
     // FETCH OLD NOTIFICATIONS
     useEffect(() => {
@@ -44,7 +46,7 @@ const Navbar = () => {
                     setNotifications(formatted);
 
                     const unread = formatted.filter(
-                        (n) => n.isread === "FALSE" || n.isread === "false"
+                        (n) => (!n.isRead)
                     ).length;
                     setUnreadCount(unread);
                 }
@@ -54,7 +56,8 @@ const Navbar = () => {
         };
 
         fetchNotifications();
-    }, [user?.email]);
+    }, [user]);
+    console.log(unreadCount);
 
     // SOCKET LISTENER
     useEffect(() => {
@@ -103,6 +106,7 @@ const Navbar = () => {
             setNotifications([]);
             setShowNotifications(false);
             setUnreadCount(0);
+            socket.emit("loggedOut", user.email);
             await logOut();
         } catch (error) {
             console.log(error.message);

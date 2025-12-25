@@ -68,10 +68,10 @@ const Comments = ({ bookId }) => {
         }
         const text = replyTexts[parentId];
         if (!text || !text.trim()) return;
-
+        const email = user?.email || user?.user?.email;
         const reply = {
             book_id: parseInt(bookId),
-            user_email: user?.email,
+            user_email: email,
             parent_comment_id: parentId,
             comment: text,
             receiver_email: receiverEmail,
@@ -83,18 +83,20 @@ const Comments = ({ bookId }) => {
                 body: JSON.stringify(reply),
             });
             socket.emit("newComment", { bookId });
-
+            // console.log(user.email);
             if (user?.uid && receiverEmail && receiverEmail !== user?.email) {
+                const userName = user?.displayName || user?.user?.displayName;
+                // console.log(user, userName, receiverEmail);
                 socket.emit(
                     "sendNotification",
                     receiverEmail,
                     text,
-                    user?.displayName || user?.user?.displayName,
+                    userName,
                     location.pathname
                 );
                 const newNotification = {
                     user_email: receiverEmail,
-                    senderName: user?.displayName || user?.user?.displayName,
+                    senderName: userName,
                     comment: text,
                     location: location.pathname,
                 };

@@ -31,7 +31,7 @@ const AuthProvider = ({ children }) => {
     };
     const login = (email, password) => {
         return signInWithEmailAndPassword(auth, email, password).then((user) =>
-            setUser(user)
+            setUser(user.user)
         );
     };
     const authData = {
